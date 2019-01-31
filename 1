@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <string>
+#include<tuple>
+#include<utility>
+using namespace std;
+
+enum class TaskStatus {
+  NEW,          // новая
+  IN_PROGRESS,  // в разработке
+  TESTING,      // на тестировании
+  DONE          // завершена
+};
+
+
+using TasksInfo = map<TaskStatus, int>;
+
+class TeamTasks {
+private:
+	map<string, map<TaskStatus,int>> developers;
+public:
+  // Получить статистику по статусам задач конкретного разработчика
+  const TasksInfo& GetPersonTasksInfo(const string& person) const{
+	//  auto t = developers.find(person);
+	//  if(t != developers.end())
+	  return developers.at(person);
+
+  };
+
+  // Добавить новую задачу (в статусе NEW) для конкретного разработчитка
+  void AddNewTask(const string& person){
+	  developers[person][TaskStatus::NEW]+=1;
+  };
+
+  // Обновить статусы по данному количеству задач конкретного разработчика,
+  // подробности см. ниже
+  tuple<TasksInfo, TasksInfo> PerformPersonTasks(
+      const string& person, int task_count){
+	  TasksInfo newd;
+	  newd.clear();
+	  int tsk_sum=developers[person][TaskStatus::NEW]+developers[person][TaskStatus::IN_PROGRESS]+developers[person][TaskStatus::TESTING];
+	  if (task_count>tsk_sum)
+		  task_count=tsk_sum;
+	  if (task_count>=developers[person][TaskStatus::NEW]){
+		  newd[TaskStatus::IN_PROGRESS]=developers[person][TaskStatus::NEW];
+		  task_count-=developers[person][TaskStatus::NEW];
+		  developers[person].erase(TaskStatus::NEW);
+	  }
+	  else {
+		  developers[person][TaskStatus::NEW]-=task_count;
+		  newd[TaskStatus::IN_PROGRESS]=task_count;
+		  task_count=0;
+	  }
+	  if (task_count>=developers[person][TaskStatus::IN_PROGRESS]){
+		  newd[TaskStatus::TESTING]=developers[person][TaskStatus::IN_PROGRESS];
+		  task_count-=developers[person][TaskStatus::IN_PROGRESS];
+		  developers[person].erase(TaskStatus::IN_PROGRESS);
+	  }
+	  else {
+		  developers[person][TaskStatus::IN_PROGRESS]-=task_count;
+		  newd[TaskStatus::TESTING]=task_count;
+		  task_count=0;
+	  }
+	  if (task_count>=developers[person][TaskStatus::TESTING]){
+		  newd[TaskStatus::DONE]=developers[person][TaskStatus::TESTING];
+		  task_count-=developers[person][TaskStatus::TESTING];
+		  developers[person].erase(TaskStatus::TESTING);
+	  }
+	  else {
+		  developers[person][TaskStatus::TESTING]-=task_count;
+		  newd[TaskStatus::DONE]=task_count;
+		  task_count=0;
+	  }
+
+	  return make_tuple(newd,developers[person]);
+  }
+
+};
+
+void PrintTasksInfo(TasksInfo tasks_info) {
+  cout << tasks_info[TaskStatus::NEW] << " new tasks" <<
+      ", " << tasks_info[TaskStatus::IN_PROGRESS] << " tasks in progress" <<
+      ", " << tasks_info[TaskStatus::TESTING] << " tasks are being tested" <<
+      ", " << tasks_info[TaskStatus::DONE] << " tasks are done" << endl;
+}
+
+int main() {
+  TeamTasks tasks;
+  tasks.AddNewTask("Ilia");
+  for (int i = 0; i < 3; ++i) {
+    tasks.AddNewTask("Ivan");
+  }
+  cout << "Ilia's tasks: ";
+  PrintTasksInfo(tasks.GetPersonTasksInfo("Ilia"));
+  cout << "Ivan's tasks: ";
+  PrintTasksInfo(tasks.GetPersonTasksInfo("Ivan"));
+
+  TasksInfo updated_tasks, untouched_tasks;
+
+  tie(updated_tasks, untouched_tasks) =
+      tasks.PerformPersonTasks("Ivan", 2);
+  cout << "Updated Ivan's tasks: ";
+  PrintTasksInfo(updated_tasks);
+  cout << "Untouched Ivan's tasks: ";
+  PrintTasksInfo(untouched_tasks);
+
+  tie(updated_tasks, untouched_tasks) =
+      tasks.PerformPersonTasks("Ivan", 2);
+  cout << "Updated Ivan's tasks: ";
+  PrintTasksInfo(updated_tasks);
+  cout << "Untouched Ivan's tasks: ";
+  PrintTasksInfo(untouched_tasks);
+
+  return 0;
+}
