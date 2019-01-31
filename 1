@@ -20,6 +20,7 @@ using TasksInfo = map<TaskStatus, int>;
 class TeamTasks {
 private:
 	map<string, map<TaskStatus,int>> developers;
+	map<string, map<TaskStatus,int>> newd;
 public:
   // Получить статистику по статусам задач конкретного разработчика
   const TasksInfo& GetPersonTasksInfo(const string& person) const{
@@ -38,45 +39,47 @@ public:
   // подробности см. ниже
   tuple<TasksInfo, TasksInfo> PerformPersonTasks(
       const string& person, int task_count){
-	  TasksInfo newd;
+	  developers[person][TaskStatus::NEW]+=newd[person][TaskStatus::NEW];
+	  developers[person][TaskStatus::IN_PROGRESS]+=newd[person][TaskStatus::IN_PROGRESS];
+	  developers[person][TaskStatus::TESTING]+=newd[person][TaskStatus::TESTING];
+	  developers[person][TaskStatus::DONE]+=newd[person][TaskStatus::DONE];
 	  newd.clear();
 	  int tsk_sum=developers[person][TaskStatus::NEW]+developers[person][TaskStatus::IN_PROGRESS]+developers[person][TaskStatus::TESTING];
 	  if (task_count>tsk_sum)
 		  task_count=tsk_sum;
 	  if (task_count>=developers[person][TaskStatus::NEW]){
-		  newd[TaskStatus::IN_PROGRESS]=developers[person][TaskStatus::NEW];
+		  newd[person][TaskStatus::IN_PROGRESS]=developers[person][TaskStatus::NEW];
 		  task_count-=developers[person][TaskStatus::NEW];
 		  developers[person].erase(TaskStatus::NEW);
 	  }
 	  else {
 		  developers[person][TaskStatus::NEW]-=task_count;
-		  newd[TaskStatus::IN_PROGRESS]=task_count;
+		  newd[person][TaskStatus::IN_PROGRESS]=task_count;
 		  task_count=0;
 	  }
 	  if (task_count>=developers[person][TaskStatus::IN_PROGRESS]){
-		  newd[TaskStatus::TESTING]=developers[person][TaskStatus::IN_PROGRESS];
+		  newd[person][TaskStatus::TESTING]=developers[person][TaskStatus::IN_PROGRESS];
 		  task_count-=developers[person][TaskStatus::IN_PROGRESS];
 		  developers[person].erase(TaskStatus::IN_PROGRESS);
 	  }
 	  else {
 		  developers[person][TaskStatus::IN_PROGRESS]-=task_count;
-		  newd[TaskStatus::TESTING]=task_count;
+		  newd[person][TaskStatus::TESTING]=task_count;
 		  task_count=0;
 	  }
 	  if (task_count>=developers[person][TaskStatus::TESTING]){
-		  newd[TaskStatus::DONE]=developers[person][TaskStatus::TESTING];
+		  newd[person][TaskStatus::DONE]=developers[person][TaskStatus::TESTING];
 		  task_count-=developers[person][TaskStatus::TESTING];
 		  developers[person].erase(TaskStatus::TESTING);
 	  }
 	  else {
 		  developers[person][TaskStatus::TESTING]-=task_count;
-		  newd[TaskStatus::DONE]=task_count;
+		  newd[person][TaskStatus::DONE]=task_count;
 		  task_count=0;
 	  }
 
-	  return make_tuple(newd,developers[person]);
+	  return make_tuple(newd[person],developers[person]);
   }
-
 };
 
 void PrintTasksInfo(TasksInfo tasks_info) {
