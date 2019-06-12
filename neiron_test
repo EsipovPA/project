@@ -1,0 +1,34 @@
+#include <iostream>
+#include <vector>
+#include <math.h>
+using namespace std;
+
+vector<vector<int>> inputs={{0,0},{0,1},{1,0},{1,1}};
+vector<int> outputs ={0,1,1,0};
+
+
+
+class Neiron {
+private:
+    double input;
+    double output;
+    
+public:
+    void AddInput(double addinput) {
+        input = addinput;
+        output = 1/(1+exp(-input));
+    }
+    
+    void ShowOutput(){
+        cout << output << endl;
+    }
+    
+};
+
+
+int main() {
+    Neiron H1;
+    H1.AddInput(0.45);
+    H1.ShowOutput();
+    return 0;
+}
