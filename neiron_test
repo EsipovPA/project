@@ -8,7 +8,7 @@ vector<int> outputs ={0,1,1,0};
 
 
 
-class Neiron {
+class Neuron {
 private:
     double input;
     double output;
@@ -23,8 +23,15 @@ public:
         cout << output << endl;
     }
     
+    double GetOutput(){
+        return output;
+    }
+    
+    void ClearNeuron(){
+        input = 0;
+        output = 0;
+    }
 };
-
 
 int main() {
     Neiron H1;
